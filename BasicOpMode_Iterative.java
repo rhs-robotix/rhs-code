@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -50,9 +51,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Skystone TeleOp", group="Iterative Opmode")
+@Autonomous(name="Skystone Auto", group="Iterative Opmode")
 //@Disabled
-public class BasicOpMode_Iterative extends OpMode
+public class BasicOpMode_Auto extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -63,6 +64,10 @@ public class BasicOpMode_Iterative extends OpMode
     private DcMotor AV = null;
     private DcMotor AH = null;
     private Servo servo = null;
+
+    private double positionAV = 0;
+    private double UpLimAV = 5;
+    private double DownLimAV = -1;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -105,8 +110,64 @@ public class BasicOpMode_Iterative extends OpMode
      */
     @Override
     public void start() {
+
         runtime.reset();
+
+        try {
+            forward(1000, 0);
+//            leftwards(1000, 0);
+//            backwards(1000, 1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
+
+    public void setPowerAmount(double x, double y, double turn, double speed)
+    {
+        FL.setPower(Range.clip( speed*((x+y)/2) + turn/4  , -1.0, 1.0));
+        FR.setPower(Range.clip( speed*((x-y)/2) + turn/4  , -1.0, 1.0));
+        BR.setPower(Range.clip( speed*((-x-y)/2) + turn/4  , -1.0, 1.0));
+        BL.setPower(Range.clip( speed*((-x+y)/2) + turn/4  , -1.0, 1.0));
+    }
+
+    public void backwards(int milliseconds, double turn) throws InterruptedException {
+        setPowerAmount(0, 1, turn, 1);
+        Thread.sleep(milliseconds);
+        hault();
+    }
+    public void leftwards(int milliseconds, double turn) throws InterruptedException {
+        setPowerAmount(1, 0, turn, 1);
+        Thread.sleep(milliseconds);
+        hault();
+    }
+    public void rightwards(int milliseconds, double turn) throws InterruptedException {
+        setPowerAmount(-1, -1, turn, 1);
+        Thread.sleep(milliseconds);
+        hault();
+    }
+    public void forward(int milliseconds, double turn) throws InterruptedException {
+        setPowerAmount(0, -1, turn, 1);
+        Thread.sleep(milliseconds);
+        hault();
+    }
+
+    public void turn(int milliseconds, double turn) throws InterruptedException {
+        setPowerAmount(0, 0, turn, 1);
+        Thread.sleep(milliseconds);
+        hault();
+    }
+
+    public void hault()
+    {
+        FL.setPower(0);
+        BL.setPower(0);
+        FR.setPower(0);
+        BR.setPower(0);
+        AV.setPower(0);
+        AH.setPower(0);
+    }
+
+
 
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
@@ -114,34 +175,7 @@ public class BasicOpMode_Iterative extends OpMode
     @Override
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
-        double FLPower;
-        double BLPower;
-        double FRPower;
-        double BRPower;
-        double x1 = gamepad1.left_stick_x * -1;
-        double y1 = gamepad1.left_stick_y;
-        double y2 = gamepad2.left_stick_y;
-        double x2 = gamepad2.right_stick_x;
-        double grip = gamepad2.left_trigger;
-        double turn  =  gamepad1.right_stick_x * -1;
-
-        FLPower    = Range.clip( 3*((x1+y1)/2)/4 + turn/4  , -1.0, 1.0) ;
-        FRPower    = Range.clip( 3*((x1-y1)/2)/4 + turn/4, -1.0, 1.0) ;
-        BRPower    = Range.clip( 3*((-x1-y1)/2)/4 + turn/4, -1.0, 1.0) ;
-        BLPower    = Range.clip( 3*((-x1+y1)/2)/4 + turn/4, -1.0, 1.0) ;
-
-        grip = Range.clip(grip, 0.0, 0.6);
-        servo.setPosition(grip);
-        // Send calculated power to wheels
-        FL.setPower(FLPower);
-        BL.setPower(BLPower);
-        FR.setPower(FRPower);
-        BR.setPower(BRPower);
-        AV.setPower(y2);
-        AH.setPower(x2);
-
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+//        telemetry.addData("Status", "Run Time: " + runtime.toString());
     }
 
     /*
@@ -156,5 +190,17 @@ public class BasicOpMode_Iterative extends OpMode
         AV.setPower(0);
         AH.setPower(0);
     }
+//
+//    public void limitCountAV(double input) {
+//        if(Math.abs(input) > 0.5) {
+//            positionAV += input;
+//        }
+//
+//        if(positionAV < UpLimAV || positionAV > DownLimAV) {
+//            AV.setPower(input);
+//        } else {
+//            AV.setPower(0);
+//        }
+//    }
 
 }
